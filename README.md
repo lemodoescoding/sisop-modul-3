@@ -1,9 +1,9 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Eu-CByJh)
-|    NRP     |      Name      |
+| NRP | Name |
 | :--------: | :------------: |
-| 5025221000 | Student 1 Name |
-| 5025221000 | Student 2 Name |
-| 5025221000 | Student 3 Name |
+| 5025241054 | Andie Azril Alfrianto |
+| 5025241060 | Christina Tan |
+| 5025241061 | Ahmad Satrio Arrohman |
 
 # Praktikum Modul 3 _(Module 3 Lab Work)_
 
