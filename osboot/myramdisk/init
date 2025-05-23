@@ -1,0 +1,33 @@
+#!/bin/sh
+/bin/mount -t proc none /proc
+/bin/mount -t sysfs none /sys
+
+/bin/hostname sisop25
+
+CMDLINE=$(cat /proc/cmdline)
+
+TTY_CONSOLE=""
+for entry in $CMDLINE; do
+    case "$entry" in
+        console=*)
+            TTY_CONSOLE="${entry#console=}"
+            ;;
+    esac
+done
+
+if [ -z "$TTY_CONSOLE" ]; then
+    TTY_CONSOLE="tty1"
+fi
+
+if /bin/echo "$TTY_CONSOLE" | /bin/grep -Eq "^ttyS|^tty[0-9]"; then
+  while true
+  do
+    /bin/getty -L "$TTY_CONSOLE" 115200 vt100
+  done
+else
+  while true
+  do
+    /bin/getty -L ttyS0 115200 vt100
+    /bin/sleep 1
+  done
+fi
