@@ -238,7 +238,7 @@ praktikan2:praktikan2
     qemu-system-x86_64 \
     -smp 2 \
     -m 256M \
-    -display gtk -vga std \
+    -nographic \
     -kernel bzImage -initrd myramdisk.gz \
     -append "quiet console=ttyS0"
 
@@ -262,7 +262,7 @@ praktikan2:praktikan2
 
   Untuk menggunakan `ttyS0` diperlukan modifikasi pada kernel linux yang digunakan yang berarti harus menjalankan perintah `make menuconfig` pada folder `linux6.1.1` yang sudah didownload, kemudian meng-enable opsi yang tertera pada bagian Code diatas (line nomor 1 saja). Secara default, kernel yang diconfig pada modul hanya akan supprot non-ttyS* (tidak mendukung tty serial). Sehingga diperlukan modifikasi kernel sehingga `ttyS*` dapat digunakan oleh OS.
 
-  Kemudian untuk cara agar resolusi yang didapat saat menjalankan OS tidak terlimit oleh resolusi default 80x25 maka juga diperlukan modifikasi kernel dengan meng-enable opsi-opsi pada nomor 2 - 5 untuk mendukung Grafik VESA VGA serta FB Support (Framebuffer) agar resolusi dapat melebihi 80x25. Kemudian untuk mendapatkan output resolusi yang besar, kami menemukan informasi bahwa `-display curses` memang hanya akan menampilkan maksimal 80x25 meskipun sudah di set 1024x768 (sebagai contoh). Hal ini karena display curses hanya akan merender OS dengan mode `text-mode` dan tidak grafik. Karena hal ini, meskipun sudah diset dengan resolusi besar tetap yang akan ditampilkan adalah ukuran 80x25, hal ini juga merupakan pengaruh dari ukuran terminal host yang digunakan. Maka untuk mengatasi hal ini, argumen `-display curses` diubah menjadi `-display std` atau `-display gtk` untuk OS dijalankan dengan menggunakan mode `graphic` serta memberikan informasi ke kernel berupa `vga=ask` di bagian `-append` agar saat booting kernel akan menampilkan list macam-macam ukuran resolusi yang dapat dipilih.
+  Kemudian untuk cara agar resolusi yang didapat saat menjalankan OS tidak terlimit oleh resolusi default 80x25 maka juga diperlukan modifikasi kernel dengan meng-enable opsi-opsi pada nomor 2 - 5 untuk mendukung Grafik VESA VGA serta FB Support (Framebuffer) agar resolusi dapat melebihi 80x25. Kemudian untuk mendapatkan output resolusi yang besar, kami menemukan informasi bahwa `-display curses` memang hanya akan menampilkan maksimal 80x25 meskipun sudah di set 1024x768 (sebagai contoh). Hal ini karena display curses hanya akan merender OS dengan mode `text-mode` dan tidak grafik. Karena hal ini, meskipun sudah diset dengan resolusi besar tetap yang akan ditampilkan adalah ukuran 80x25, hal ini juga merupakan pengaruh dari ukuran terminal host yang digunakan. Maka untuk mengatasi hal ini, argumen `-display curses` diubah menjadi `-display std` atau `-display gtk` untuk OS dijalankan dengan menggunakan mode `graphic` serta memberikan informasi ke kernel berupa `vga=ask` di bagian `-append` agar saat booting kernel akan menampilkan list macam-macam ukuran resolusi yang dapat dipilih (Contoh: 316 -> 1024x768 dengan support 24-bit warna).
 
 - **Screenshot:**
 
@@ -349,7 +349,7 @@ praktikan2:praktikan2
 
   ```bash
   # jika ingin menggunakan output VGA Graphic
-  qemu-system-x86_64 \
+  qemu-system-x86_64 \                                                       130 ↵
   -smp 2 \
   -m 256 \
   -display gtk \
@@ -357,7 +357,7 @@ praktikan2:praktikan2
   -cdrom iso25.iso
 
   # jika ingin menggunakan output serial (ttyS0 atau nographic)
-  qemu-system-x86_64 \
+  qemu-system-x86_64 \                                                       130 ↵
   -smp 2 \
   -m 256 \
   -nographic \
