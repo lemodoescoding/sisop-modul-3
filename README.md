@@ -173,11 +173,96 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  etc/profile:
+
+  ```bash
+    if [[ "${USER}" == "root" ]]; then
+        export PS1="\[\033[1m\033[38;2;147;11;44m\]\u@\h\033[0m:\033[38;2;59;235;60m\w\033[38;2;255;255;255m\$ \[\033[0m\]"
+    else
+        export PS1="\[\033[1m\033[38;2;42;122;105m\]\u@\h\033[0m:\033[38;2;59;235;     60m\w\033[38;2;255;255;255m\$ \[\033[0m\]"
+    fi
+  ```
+
+  init:
+
+  ```bash
+    #!/bin/sh
+    /bin/mount -t proc none /proc
+    /bin/mount -t sysfs none /sys
+
+    /bin/hostname sisop25
+
+    CMDLINE=$(cat /proc/cmdline)
+
+    TTY_CONSOLE=""
+    for entry in $CMDLINE; do
+        case "$entry" in
+            console=*)
+                TTY_CONSOLE="${entry#console=}"
+            ;;
+        esac
+    done
+
+    if [ -z "$TTY_CONSOLE" ]; then
+        TTY_CONSOLE="tty1"
+    fi
+
+    if /bin/echo "$TTY_CONSOLE" | /bin/grep -Eq "^ttyS|^tty[0-9]"; then
+        while true
+        do
+            /bin/getty -L "$TTY_CONSOLE" 115200 vt100
+        done
+    else
+        while true
+        do
+            /bin/getty -L ttyS0 115200 vt100
+            /bin/sleep 1
+        done
+    fi
+  ```
+
+  Memperbesar ukuran window tanpa menggunakan `ttyS0` (memodifikasi kernel linux) serta mendukung support untuk menggunakan `ttyS0`
+
+  ```
+    Device Drivers -> Character Devices -> Serial Drivers -> 8250/16550 and compatible serial support
+    Device Drivers -> Graphics Support -> Frame Buffer Devices -> Support for Frame Buffer Devices -> VESA VGA
+    Device Drivers -> Graphics Support -> Frame Buffer Devices -> Support for Frame Buffer Devices -> SImple framebuffer support
+    Device Drivers -> Graphics Support -> Console display driver support -> Framebuffer Console support
+    Device Drivers -> Firmware Devices -> Mark VGA/VBE/EFI
+  ```
+
+  Menjalankan qemu
+
+  ```bash
+  # dengan menggunakan ttyS0
+    qemu-system-x86_64 \
+    -smp 2 \
+    -m 256M \
+    -display gtk -vga std \
+    -kernel bzImage -initrd myramdisk.gz \
+    -append "quiet console=ttyS0"
+
+  # dengan menggunakan tty1 dan graphics support
+    qemu-system-x86_64 \
+    -smp 2 \
+    -m 256M \
+    -display gtk -vga std \
+    -kernel bzImage -initrd myramdisk.gz \
+    -append "quiet console=tty1 vga=ask"
+
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+  Untuk mengubah tampilan shell di OS yang sudah kita buat sebelumnya, sesuai dengan dokumentasi yang ada pada website official bash di bagian `Controlling the prompt` [Bash: Controlling the Prompt](https://www.gnu.org/software/bash/manual/bash.html#Controlling-the-Prompt). Di page tersebut disebutkan kita dapat meng-custom bagaimana output dari shell bash kita dengan memodifikasi salah satu diantara prompt variabel yang tersedia (PS0, PS1, PS2, PS3). Disini kami hanya meng-export nilai baru dari variabel PS1 yang berisi format shell yang akan ditampilkan ketika user sudah login. Beberapa diantara shortcut untuk memformat shell adalah `\h` yang akan menampilkan hostname, `\u` untuk menampilkan nama user, dan `\w` untuk menampilkan CWD (current working directory).
+
+  Untuk pewarnaan text, kami menggunakan `ANSI escape code` yang dapat memformat output-an command `echo` sesuai dengan yang diinginkan. Untuk pemformatan diperlukan sebuah escape character berupa `\033` dan selanjutnya diikuti oleh karakter `[` yang mengindikasikan `ANSI escape sequence` dengan mode `CSI`. Mode ini dapat membuat karakter setelah escape sequence tadi untuk di-format dengan mode yang diberikan setelah karakter `[`. Seperti 1m untuk bold, 7m untuk inverse, 38;2;r;g;bm untuk pewarnaan karakter dengan inputan rgb. [Digital VT100 User Guide](https://vt100.net/docs/vt100-ug/chapter3.html) - [Wikipedia ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code)
+
+  Kemudian untuk mempermudah pergantian tipe konsol yang digunakan dalam menjalankan OS (tt1, tty0, ttyS0 atau yang lain), maka kami memodifikasi file init yang terletak di `myramdisk/init` untuk dapat menyesuaikan tipe tty yang digunakan untuk menjalankan OS. Untuk memberitahu OS tipe tty apa yang digunakan, pada saat menjalankan OS kernel diberitahu dengan mem-pass argumen `console=tty1`. Argumen ini kalau dijalankan menggunakan qemu, maka terdapat argumen tambahan yakni `-append "console=tty1`. Sehingga kernel akan menangkap argumen ini dan file init akan memprosesnya. Untuk mengambil argumen yang sudah diberikan pada saat menjalankan OS, diambil informasi dari file `/proc/cmdline`. File ini nantinya akan berisi argumen-argumen yang diberikan pada `-append`. Kemudian di file init, akan dilakukan looping sampai menemukan argumen berupa `console=` yang nantinya string setelah `console=` ini akan dijadikan prompt login dan menjalankan OS nya. Namun jika tidak ada argumen `-append "console=...` maka file init akan menggunakan `ttyS0` secara default.
+
+  Untuk menggunakan `ttyS0` diperlukan modifikasi pada kernel linux yang digunakan yang berarti harus menjalankan perintah `make menuconfig` pada folder `linux6.1.1` yang sudah didownload, kemudian meng-enable opsi yang tertera pada bagian Code diatas (line nomor 1 saja). Secara default, kernel yang diconfig pada modul hanya akan supprot non-ttyS* (tidak mendukung tty serial). Sehingga diperlukan modifikasi kernel sehingga `ttyS*` dapat digunakan oleh OS.
+
+  Kemudian untuk cara agar resolusi yang didapat saat menjalankan OS tidak terlimit oleh resolusi default 80x25 maka juga diperlukan modifikasi kernel dengan meng-enable opsi-opsi pada nomor 2 - 5 untuk mendukung Grafik VESA VGA serta FB Support (Framebuffer) agar resolusi dapat melebihi 80x25. Kemudian untuk mendapatkan output resolusi yang besar, kami menemukan informasi bahwa `-display curses` memang hanya akan menampilkan maksimal 80x25 meskipun sudah di set 1024x768 (sebagai contoh). Hal ini karena display curses hanya akan merender OS dengan mode `text-mode` dan tidak grafik. Karena hal ini, meskipun sudah diset dengan resolusi besar tetap yang akan ditampilkan adalah ukuran 80x25, hal ini juga merupakan pengaruh dari ukuran terminal host yang digunakan. Maka untuk mengatasi hal ini, argumen `-display curses` diubah menjadi `-display std` atau `-display gtk` untuk OS dijalankan dengan menggunakan mode `graphic` serta memberikan informasi ke kernel berupa `vga=ask` di bagian `-append` agar saat booting kernel akan menampilkan list macam-macam ukuran resolusi yang dapat dipilih.
 
 - **Screenshot:**
 
@@ -193,11 +278,30 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  ```bash
+  git clone git@github.com:morisab/budiman-text-editor.git
+  cd budiman-text-editor
+  g++ -static -o budiman main.cpp
+
+  # copy file `budiman` ke myramdisk/bin
+  cp budiman /path/to/osboot/myramdisk/bin
+
+  # di folder osboot/myramdisk
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  cd ..
+
+  # jalankan OS dengan qemu
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+  Hal Pertama yang dilakukan adalah dengan meng-clone repositori milik `morisab` ke komputer lokal kita. Pada kelompok kami, proses clone dilakukan diluar direktori `osboot`. Setelah repositori sudah ter-download, maka dilakukan compile untuk file main.cpp namun dengan tambahan `-static`. Hal ini disebabkan pada OS yang kita buat tidak memiliki dynamic linker sehingga ketika hanya dicompile biasa dan dijalankan di OS kita maka program `budiman` tidak akan berjalan karena file compile-an tersebut tidak mengetahui dimana letak library-library yang dibutuhkan. Untuk mengatasi hal ini di perlukan tambahan argumen `-static` pada saat menjalankan compile file `main.cpp`, tujuannya agar semua library atau header yang diperlukan dalam file `main.cpp` di-include bersamaan sehingga hasil compile-an `budiman` tidak membutuhkan dynamic linker. Hal ini bisa dibuktikan dengan menjalankan perintah
+
+  ```bash
+  ldd budiman
+  ```
+
+  Ketika menjalankan perintah tersebut maka akan muncul pesan `not a dynamic executable`. Hal ini menunjukkan file `budiman` hasil compile-an tersebut sudah statically linked. Dengan cara ini, kita bisa menjalankan program tersebut di OS kita.
 
 - **Screenshot:**
 
@@ -213,11 +317,63 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  Isi dari file `boot.cfg`
+
+  ```
+    settimeout 5
+    setdefault 0
+
+    menuentry "OS'25 v0.0.1 (VESA VGA) - (Select if -vga std)" {
+        linux /boot/bzImage quiet console=tty1 vga=ask
+        initrd /boot/myramdisk.gz
+    }
+
+    menuentry "OS'25 v0.0.1 (Serial Console) - (Select if -nographic)" {
+        linux /boot/bzImage quiet console=ttyS0
+        initrd /boot/myramdisk.gz
+    }
+  ```
+
+  Membuat file `.iso`
+
+  ```bash
+  mkdir -p iso25/boot/grub
+  cp bzImage iso25/boot
+  cp myramdisk.gz iso25/boot
+  touch iso25/boot/grub/grub.cfg
+
+  grub-mkrescue iso25 -o iso25.iso
+  ```
+
+  Menjalankan OS dengan menggunakan file `.iso`
+
+  ```bash
+  # jika ingin menggunakan output VGA Graphic
+  qemu-system-x86_64 \
+  -smp 2 \
+  -m 256 \
+  -display gtk \
+  -vga std \
+  -cdrom iso25.iso
+
+  # jika ingin menggunakan output serial (ttyS0 atau nographic)
+  qemu-system-x86_64 \
+  -smp 2 \
+  -m 256 \
+  -nographic \
+  -cdrom iso25.iso
+
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+  Untuk membuat file-file yang diperlukan untuk menjalankan OS yang sudah kita buat dan menyatukan semua file tersebut menjadi sebuah file `.iso` maka pertama yang harus dilakukan adalah membuat sebuah direktori dimana terdapat duplikat dari file kernel `bzImage` serta file `myramdisk.gz` sebagai initramfs. Direktori ini kami namakan `iso25` yang didalamnya terdapat direktori `boot` dan `boot/grub`. Isi dari direktori `boot` adalah duplikat dari file kernel serta initramfs, sedangkan didalam direktori `boot/grub` berisi file `grub.cfg` yang sudah dicantumkan di atas. Statement `settimeout 5` akan membuat proses booting untuk menunggu user untuk memilih entry yang tersedia, jika user tidak memilih maka akan di-set secara default dengan statement `setdefault 0` yang berarti pilihan default adalah pilihan nomor 0 (dalam hal ini 0-based index).
+
+  Kemudian didalam file `grub.cfg` diisi dua menuentry, yang pertama untuk menjalankan OS dengan menggunakan output dari VGA Graphics dan yang kedua menjalankan OS dengan menggunakan serial console (ttyS0). Didalam masing-masing menuentry terdapat dua perintah yang sama, yakni mendefinisikan kernel dengan perintah `linux` serta initramfs dengan perintah `initrd`. Untuk output yang menggunakan VGA Graphics pada perintah `linux` ditambahkan argumen berupa `quiet console=tty1 vga=ask`. Hal serupa juga ditambahkan pada menuentry pada menu Serial Console dengan argumen `quiet console=ttyS0`. Masing-masing argumen ini akan memberitahu kernel console apa yang akan digunakan serta membuat debug line agar ter-disable sehingga tidak muncul debug line yang dihasilkan oleh kernel pada saat proses booting hingga muncul prompt login.
+
+  Setelah itu, menuju kembali ke direktori parent dari `iso25` dan menjalankan perintah `grub-mkrescue` atau dibeberapa sistem menggunakan `grub2-mkrescue` untuk membuat file `.iso` dari OS yang sudah kita buat. Untuk menjalankan OS dengan file `.iso` yang sudah dibuat dapat menggunakan argumen `-cdrom iso25.iso` serta perlu ditambahkan argumen antara `-vga std -display gtk` atau `-vga std -display sdl` untuk output dengan menggunakan VGA Graphic atau `-nographic` untuk menggunakan output dari `ttyS0`
+
+  Ketika booting nantinya akan diberikan prompt grub berupa 2 pilihan untuk menjalankan OS, untuk pemilihan perlu diperhatikan dengan argumen yang diberikan pada saat awal menjalan QEMU, jika menggunakan `-nographic` hendaklah menggunakan pilihan ke-2, sebaliknya menggunakan pilihan ke-1 agar tidak terjadi error atau freeze.
 
 - **Screenshot:**
 
