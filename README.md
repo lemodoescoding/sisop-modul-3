@@ -79,7 +79,7 @@ cd ~
 sudo apt install -y busybox-static
 
 cd osboot3/osboot
-mkdir -p myramdisk/{bin,dev,proc,sys,tmp,etc,sisop}
+mkdir -p myramdisk/{bin,dev,proc,sys,tmp,etc,sisop,home/{root,Budiman,guest,praktikan1,praktikan2}}
 
 cd myramdisk/dev
 cp -a /dev/null ./           
@@ -123,7 +123,6 @@ praktikan2:praktikan2
 - **Code:**
 
 ```bash
-mkdir -p myramdisk/{home/root,home/Budiman,home/guest,home/praktikan1,home/praktikan2}
 
 cd myramdisk/etc
 touch passwd
