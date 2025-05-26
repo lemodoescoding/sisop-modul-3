@@ -59,6 +59,8 @@ cp ../linux-6.1.1/arch/x86/boot/bzImage ./
   Centang bagian multiple users
 
   ![konfigurasi kernel](./assets/1a.png)
+
+  bzImage dicreate dari ```make -j$(nproc)```
   
   ![build bzImage](./assets/1b.png)
 
