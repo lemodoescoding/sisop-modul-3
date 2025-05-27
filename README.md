@@ -364,7 +364,7 @@ praktikan2:praktikan2
 
   ```bash
   # jika ingin menggunakan output VGA Graphic
-  qemu-system-x86_64 \                                                       130 ↵
+  qemu-system-x86_64 \
   -smp 2 \
   -m 256 \
   -display gtk \
@@ -372,7 +372,7 @@ praktikan2:praktikan2
   -cdrom iso25.iso
 
   # jika ingin menggunakan output serial (ttyS0 atau nographic)
-  qemu-system-x86_64 \                                                       130 ↵
+  qemu-system-x86_64 \
   -smp 2 \
   -m 256 \
   -nographic \
@@ -403,6 +403,8 @@ praktikan2:praktikan2
   Menjalankan OS dengan file .iso serta argumen -vga std -display gtk
   ![QEMU dengan .iso dan -vga std](/assets/soal10-E.png)
   ![Tampilan OS](/assets/soal10-F.png)
+
+  Untuk output dari masing-masing argumen sama persis seperti hasil screenshot nomor 8
 
 ---
 
