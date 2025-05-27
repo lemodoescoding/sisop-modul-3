@@ -392,7 +392,17 @@ praktikan2:praktikan2
 
 - **Screenshot:**
 
-  `put your answer here`
+  Menduplikat serta membuat file-file yang dibutuhkan untuk membuat iso
+  ![Proses duplikat serta create](/assets/soal10-A.png)
+  ![Isi file grub.cfg](/assets/soal10-B.png)
+
+  Menjalankan OS dengan menggunakan file .iso serta argumen -nographic
+  ![QEMU dengan .iso dan -nographic](/assets/soal10-C.png)
+  ![Tampilan OS](/assets/soal10-D.png)
+
+  Menjalankan OS dengan file .iso serta argumen -vga std -display gtk
+  ![QEMU dengan .iso dan -vga std](/assets/soal10-E.png)
+  ![Tampilan OS](/assets/soal10-F.png)
 
 ---
 
