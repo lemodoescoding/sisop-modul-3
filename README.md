@@ -260,13 +260,24 @@ praktikan2:praktikan2
 
   Kemudian untuk mempermudah pergantian tipe konsol yang digunakan dalam menjalankan OS (tt1, tty0, ttyS0 atau yang lain), maka kami memodifikasi file init yang terletak di `myramdisk/init` untuk dapat menyesuaikan tipe tty yang digunakan untuk menjalankan OS. Untuk memberitahu OS tipe tty apa yang digunakan, pada saat menjalankan OS kernel diberitahu dengan mem-pass argumen `console=tty1`. Argumen ini kalau dijalankan menggunakan qemu, maka terdapat argumen tambahan yakni `-append "console=tty1`. Sehingga kernel akan menangkap argumen ini dan file init akan memprosesnya. Untuk mengambil argumen yang sudah diberikan pada saat menjalankan OS, diambil informasi dari file `/proc/cmdline`. File ini nantinya akan berisi argumen-argumen yang diberikan pada `-append`. Kemudian di file init, akan dilakukan looping sampai menemukan argumen berupa `console=` yang nantinya string setelah `console=` ini akan dijadikan prompt login dan menjalankan OS nya. Namun jika tidak ada argumen `-append "console=...` maka file init akan menggunakan `ttyS0` secara default.
 
-  Untuk menggunakan `ttyS0` diperlukan modifikasi pada kernel linux yang digunakan yang berarti harus menjalankan perintah `make menuconfig` pada folder `linux6.1.1` yang sudah didownload, kemudian meng-enable opsi yang tertera pada bagian Code diatas (line nomor 1 saja). Secara default, kernel yang diconfig pada modul hanya akan supprot non-ttyS* (tidak mendukung tty serial). Sehingga diperlukan modifikasi kernel sehingga `ttyS*` dapat digunakan oleh OS.
+  Untuk menggunakan `ttyS0` diperlukan modifikasi pada kernel linux yang digunakan yang berarti harus menjalankan perintah `make menuconfig` pada folder `linux6.1.1` yang sudah didownload, kemudian meng-enable opsi yang tertera pada bagian Code diatas (line nomor 1 saja). Secara default, kernel yang diconfig pada modul hanya akan support non-ttyS* (tidak mendukung tty serial). Sehingga diperlukan modifikasi kernel sehingga `ttyS*` dapat digunakan oleh OS.
 
   Kemudian untuk cara agar resolusi yang didapat saat menjalankan OS tidak terlimit oleh resolusi default 80x25 maka juga diperlukan modifikasi kernel dengan meng-enable opsi-opsi pada nomor 2 - 5 untuk mendukung Grafik VESA VGA serta FB Support (Framebuffer) agar resolusi dapat melebihi 80x25. Kemudian untuk mendapatkan output resolusi yang besar, kami menemukan informasi bahwa `-display curses` memang hanya akan menampilkan maksimal 80x25 meskipun sudah di set 1024x768 (sebagai contoh). Hal ini karena display curses hanya akan merender OS dengan mode `text-mode` dan tidak grafik. Karena hal ini, meskipun sudah diset dengan resolusi besar tetap yang akan ditampilkan adalah ukuran 80x25, hal ini juga merupakan pengaruh dari ukuran terminal host yang digunakan. Maka untuk mengatasi hal ini, argumen `-display curses` diubah menjadi `-display std` atau `-display gtk` untuk OS dijalankan dengan menggunakan mode `graphic` serta memberikan informasi ke kernel berupa `vga=ask` di bagian `-append` agar saat booting kernel akan menampilkan list macam-macam ukuran resolusi yang dapat dipilih (Contoh: 316 -> 1024x768 dengan support 24-bit warna).
 
+  https://docs.kernel.org/6.7/admin-guide/svga.html  
+  https://docs.kernel.org/6.7/fb/vesafb.html  
+  https://tldp.org/HOWTO/html_single/Framebuffer-HOWTO/ (Note: dokumentasi sudah deprecated)
+
 - **Screenshot:**
 
-  `put your answer here`
+  Tampilan OS setelah dimodifikasi look shell dan menggunakan ttyS0
+  ![Menjalankan OS dengan menggunakan ttyS0](/assets/soal8-K.png)
+  ![Menjalankan QEMU dengan modifikasi look terminal dan menggunakan ttyS0](/assets/soal8-O.png)
+
+  Menjalankan OS dengan tty1 serta support Framebuffer dan VESA VGA
+  ![Memodifikasi kernel untuk mendukung Framebuffer serta VESA VGA](/assets/soal8-G.png)
+  ![Pilihan menu resolusi](/assets/soal8-I.png)
+  ![Tampilan final OS dengan Framebuffer dan VESA VGA](/assets/soal8-N.png)
 
 ### Soal 9
 
@@ -305,7 +316,11 @@ praktikan2:praktikan2
 
 - **Screenshot:**
 
-  `put your answer here`
+  Mendownload repositori dan mengcompile file main.cpp
+  ![Mendownload repo dan compile file](/assets/soal9-A.png)
+
+  File binary budiman dijalankan di OS
+  ![Menjalankan program](/assets/soal9-B.png)
 
 ### Soal 10
 
