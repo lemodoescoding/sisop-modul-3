@@ -238,15 +238,25 @@ chmod 700 home/root
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  chown 1001:1001 home/Budiman
+  chmod 700 home/Budiman
+  chown 1002:1002 home/guest
+  chmod 700 home/guest
+  chown 1003:1003 home/praktikan1
+  chmod 700 home/praktikan1
+  chown 1004:1004 home/raktikan2
+  chmod 700 home/praktikan2
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
-
+  Perintah `chown 1001:1001 home/Budiman` menjadikan user dengan UID dan GID 1001 sebagai pemilik dan grup dari direktori `home/Budiman`. Dengan cara yang sama, `chown 1002:1002 home/guest`, `chown 1003:1003 home/praktikan1`, dan `chown 1004:1004 home/praktikan2`. 
+  Lalu, perintah `chmod 700` berarti hanya pemilik direktori yang diberikan hak akses penuh (read, write, dan execute), sedangkan grup dan user lain tidak diberi akses.
+	
 - **Screenshot:**
 
-  `put your answer here`
+  ![Privasi dan otoritas tiap user](/assets/soal-5.png "SS hasil kode.")
 
 ### Soal 6
 
@@ -258,15 +268,38 @@ chmod 700 home/root
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  #!/bin/sh
+
+  /bin/echo -e "\033[38;2;15;124;153m
+   /$$      /$$           /$$
+  | $$  /$ | $$          | $$
+  | $$ /$$$| $$  /$$$$$$ | $$  /$$$$$$$  /$$$$$$  /$$$$$$/$$$$   /$$$$$$
+  | $$/$$ $$ $$ /$$__  $$| $$ /$$_____/ /$$__  $$| $$_  $$_  $$ /$$__  $$
+  | $$$$_  $$$$| $$$$$$$$| $$| $$      | $$  \ $$| $$ \ $$ \ $$| $$$$$$$$
+  | $$$/ \  $$$| $$_____/| $$| $$      | $$  | $$| $$ | $$ | $$| $$_____/
+  | $$/   \  $$|  $$$$$$$| $$|  $$$$$$$|  $$$$$$/| $$ | $$ | $$|  $$$$$$$
+  |__/     \__/ \_______/|__/ \_______/ \______/ |__/ |__/ |__/ \_______/
+
+
+     /$$                      /$$$$$$   /$$$$$$  /$$ /$$$$$$  /$$$$$$$
+    | $$                     /$$__  $$ /$$__  $$| $//$$__  $$| $$____/
+    /$$$$$$    /$$$$$$      | $$  \ $$| $$  \__/|_/|__/  \ $$| $$
+   |_  $$_/   /$$__  $$     | $$  | $$|  $$$$$$      /$$$$$$/| $$$$$$$
+     | $$    | $$  \ $$     | $$  | $$ \____  $$    /$$____/ |_____  $$
+     | $$ /$$| $$  | $$     | $$  | $$ /$$  \ $$   | $$       /$$  \ $$
+     |  $$$$/|  $$$$$$/     |  $$$$$$/|  $$$$$$/   | $$$$$$$$|  $$$$$$/
+     \_____/  \______/       \______/  \______/    |________/ \______/
+  \033[0m"
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+  `/bin/echo` yaitu perintah echo yang dipanggil langsung dari direktori `/bin`. `-e` untuk mengenali perintah escape sequences, seperti `\033`. `38;2;15;124;153m` digunakan untuk mengatur warna teks dalam format RGB. `\033[0m` digunakan untuk mereset warna terminal ke default, agar tidak memengaruhi teks setelahnya.
 
 - **Screenshot:**
 
-  `put your answer here`
+  ![Banner dalam bentuk ASCII Art](/assets/soal-6.png "SS hasil kode.")
 
 ### Soal 7
 
@@ -278,15 +311,17 @@ chmod 700 home/root
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  /bin/echo "Helloo ${USER}"
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+  Perintah `echo` digunakan untuk menampilkan teks dan variabel `${USER}` adalah variabel yang berisi nama user yang sedang login.
 
 - **Screenshot:**
 
-  `put your answer here`
+  ![Kata sambutan](/assets/soal-7.png "SS hasil kode.")
 
 ### Soal 8
 
