@@ -23,15 +23,46 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Code:**
 
-  `put your answer here`
+```bash
+sudo bash
+
+sudo apt -y update
+sudo apt -y install qemu-system build-essential bison flex libelf-dev libssl-dev bc grub-common grub-pc libncurses-dev libssl-dev mtools grub-pc-bin xorriso tmux
+
+mkdir -p osboot3
+cd osboot3
+
+mkdir -p osboot
+cd osboot
+
+cd osboot3
+
+wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.1.tar.xz
+tar -xvf linux-6.1.1.tar.xz
+cd linux-6.1.1
+
+make menuconfig
+
+make -j$(nproc)
+
+cd ../osboot
+
+cp ../linux-6.1.1/arch/x86/boot/bzImage ./
+```
 
 - **Explanation:**
 
-  `put your answer here`
+  Menggunakan sudo bash untuk masuk ke shell bash sebagai superuser atau root. Selanjutnya install dan perbarui software pendukung, tools yang dibutuhkan seperti qemu, build-essential, bison, flex, dan lainnya. Selanjutnya buat direktori osboot dan download kernel linux menggunakan wget dan extract file tersebut. Lalu, make menuconfig dan memilih fitur-fitur yang dibutuhkan, bisa mengikuti konfigurasinya dari modul, lalu tambahkan ```General devices -> Configure standard kernel features -> Multiple users, groups, and capabilities support``` untuk mengaktifkan multi-user. Setelah selesai konfigurasi, jalankan ```make -j$(nproc)``` untuk build kernel. Setelah itu, akan menghasilkan file bzImage. Lalu copy bzImage ke osboot.
 
 - **Screenshot:**
 
-  `put your answer here`
+  Centang bagian multiple users
+
+  ![konfigurasi kernel](./assets/1a.png)
+
+  bzImage dicreate dari ```make -j$(nproc)```
+  
+  ![build bzImage](./assets/1b.png)
 
 ### Soal 2
 
@@ -43,15 +74,33 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Code:**
 
-  `put your answer here`
+```bash
+cd ~
+sudo apt install -y busybox-static
+
+cd osboot3/osboot
+mkdir -p myramdisk/{bin,dev,proc,sys,tmp,etc,sisop,home/{root,Budiman,guest,praktikan1,praktikan2}}
+
+cd myramdisk/dev
+cp -a /dev/null ./           
+cp -a /dev/tty* ./           
+cp -a /dev/zero ./           
+cp -a /dev/console ./
+
+cp /usr/bin/busybox myramdisk/bin
+cd myramdisk/bin
+./busybox --install .
+```
 
 - **Explanation:**
 
-  `put your answer here`
+  Pertama, install busybox. Di dalam busybox tersedia berbagai utilitas sistem yang digunakan untuk mengonfigurasi perangkat keras, memanipulasi sistem berkas, dan melakukan tugas penting lainnya selama proses booting. Setelah itu, buat direktori bin, dev, proc, sys, tmp, etc,dan sisop dalam myramdisk. Direktori /dev di Linux berisi file perangkat penting seperti null, tty, zero, dan console. Kita akan menyalinnya dari sistem host ke dalam direktori dev di myramdisk. Selanjutnya, kita akan menyalin file BusyBox ke direktori bin yang telah dibuat di dalam myramdisk. Kemudian, kita akan menginstal semua utilitas yang disediakan oleh BusyBox.
 
 - **Screenshot:**
 
-  `put your answer here`
+   hasil ls dari myramdisk
+
+  ![dibuat bin, dev, proc, sys, tmp, etc, dan sisop](./assets/2a.png)
 
 ### Soal 3
 
@@ -73,15 +122,80 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+```bash
+
+cd myramdisk/etc
+touch passwd
+touch group
+
+openssl passwd -1 Iniroot
+openssl passwd -1 PassBudi
+openssl passwd -1 guest
+openssl passwd -1 praktikan1
+openssl passwd -1 praktikan2
+
+nano passwd
+// isi dari passwd //
+{
+root:$1$DMlRNHHa$HX8SPo0qXI1GU90xRm3KS.:0:0:root:/home/root:/bin/sh
+Budiman:$1$DzAJqgPH$O7mHhSUdCvDPoiOb.W8VX.:1000:1000:Budiman:/home/Budiman:/bin/sh
+guest:$1$OSxlzVey$1Zjv.sjplAAFCspoW5lbh0:1001:1001:guest:/home/guest:/bin/sh
+praktikan1:$1$v4tx2dmS$Fz9H.s0Poqlbm28d8oVEe/:1002:1002:praktikan1:/home/praktikan1:/bin/sh
+praktikan2:$1$HPmhfaCm$puML9tyHiDXYBIDSnO.Bo.:1003:1003:praktikan2:/home/praktikan2:/bin/sh
+}
+
+cd ..
+touch init
+nano init
+
+// isi dari init //
+{
+#!/bin/sh
+/bin/mount -t proc none /proc
+/bin/mount -t sysfs none /sys
+
+while true
+do
+    /bin/getty -L tty1 115200 vt100
+    sleep 1
+done
+}
+
+chmod +x init
+
+nano group
+// isi dari group //
+{
+root:x:0:
+bin:x:1:root
+sys:x:2:root
+tty:x:5:root,Budiman,guest,praktikan1,praktikan2
+disk:x:6:root
+wheel:x:10:root,Budiman,guest,praktikan1,praktikan2
+users:x:100:Budiman,guest,praktikan1,praktikan2
+}
+
+find . | cpio -oHnewc | gzip > ../myramdisk.gz
+```
 
 - **Explanation:**
 
-  `put your answer here`
+  Pertama, buat direktori dalam myramdisk dengan format ```/home/(user)```, lalu pindah ke direkori etc dan buat file passwd untuk menyimpan informasi user dan group untuk menyimpan informasi group. Kemudian, gunakan ```openssl passwd -1 (password)``` untuk mendapatkan hash MD5 dari password. Hasilnya nanti akan digunakan sebagai field kedua di file passwd. Lalu, tulis ke file passwd dengan format ```username:password:UID:GID:GECOS:/home/username:/bin/sh```. UID dan GID sama sehingga setiap user memiliki grup yang berisi mereka sendiri. Lalu, buat file init di direktori myramdisk. Script init akan menjadi program pertama yang dijalankan setelah boot. program init didapatkan dari modul sisop. Setelah itu, buat ```chmod +x init``` agar file init bisa dieksekusi. Selanjutnya, buka file group dan salin program ke dalam group. program group didapatkan dari modul sisop, hanya ditambahkan user-usernya saja. ```tty, wheel, dan users``` berisi user biasa agar bisa mengakses terminal atau fitur admin tertentu. Lalu, buat intramfs dengan command ```find . | cpio -oHnewc | gzip > ../myramdisk.gz```
 
 - **Screenshot:**
 
-  `put your answer here`
+  hasil generate password
+
+  ![hasil generate openssl -1 {password}](./assets/3a.png)
+
+   masukkan hasil generate ke passwd
+
+  ![isi file passwd](./assets/3b.png)
+
+  isi dari file group
+
+  ![isi file group](./assets/3c.png)
+
 
 ### Soal 4
 
@@ -93,15 +207,26 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+```bash
+chmod 644 etc/passwd
+chmod 600 etc/group
+chown 0:0 home/root
+chown 1000:1000 home/Budiman
+chown 1001:1001 home/guest
+chown 1002:1002 home/praktikan1
+chown 1003:1003 home/praktikan2
+chmod 700 home/root
+```
 
 - **Explanation:**
 
-  `put your answer here`
+  ```chmod 644 etc/passwd``` mengatur izin untuk read & write untuk owner, read saja untuk group dan lainnya. ```chmod 600 etc/group``` mengatur izin untuk read & write untuk owner, sedangkan group & lainnya tidak bisa rwx. Lalu, buat ```chown UID:GID home/(user)``` untuk memberikan setiap user hak milik penuh atas home directorinya. Lalu, ```chmod 700 home/root``` untuk memberi owner saja yang bisa rwx, dalam hal ini hanya root sendiri yang mempunyai akses tersebut.
 
 - **Screenshot:**
 
-  `put your answer here`
+  Bukti user tidak bisa akses ke root
+
+  ![ss no 4](./assets/4.png)
 
 ### Soal 5
 
@@ -228,3 +353,4 @@ praktikan2:praktikan2
 Pada akhirnya sistem operasi Budiman yang telah kamu buat dengan susah payah dikumpulkan ke Dosen mengatasnamakan Budiman. Kamu tidak diberikan credit apapun. Budiman pun tidak memberikan kata terimakasih kepadamu. Kamupun kecewa tetapi setidaknya kamu telah belajar untuk menjadi pembuat sistem operasi sederhana yang andal. Selamat!
 
 _At last, the OS you painstakingly created was submitted to the lecturer under Budiman's name. You received no credit. Budiman didn't even thank you. You feel disappointed, but at least you've learned to become a reliable creator of simple operating systems. Congratulations!_
+
